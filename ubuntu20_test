@@ -1,0 +1,138 @@
+#!/bin/bash
+summary_logs=./summary_logs
+
+#1. Disable unused filesystems
+echo 'Disable unused filessystems'
+if [[ $(lsmod | grep cramfs) != ""]]
+then
+  rmmod cramfs
+  echo "Disable unused filesystems: FIXED" >> $summary_logs
+else
+  echo "PASSED"
+  echo "Disable unused filesystems: PASSED" >> $summary_logs
+fi
+
+#2. Ensure mounting of freevxfs filesystems is disabled (Automated)
+echo 'Ensure mounting of freevxfs filesystems is disabled (Automated)'
+if [[ $( lsmod | grep freevxfs) != "" ]]
+then
+  rmmod freevxfs
+  echo "Ensure mounting of freevxfs filesystems is disabled (Automated): FIXED" >> $summary_logs
+else
+  echo "PASSED"
+  echo "Ensure mounting of freevxfs filesystems is disabled (Automated): PASSED" >> $summary_logs
+fi
+
+#3. Ensure mounting of jffs2 filesystems is disabled (Automated)
+echo ' Ensure mounting of jffs2 filesystems is disabled (Automated)'
+if [[ $( lsmod | grep jffs2) != "" ]]
+then
+  rmmod jffs2
+  echo "Ensure mounting of jffs2 filesystems is disabled (Automated): FIXED" >> $summary_logs
+else
+  echo "PASSED"
+  echo "Ensure mounting of jffs2 filesystems is disabled (Automated): PASSED" >> $summary_logs
+fi
+
+#4. Ensure mounting of hfs filesystems is disabled (Automated)
+echo "Ensure mounting of hfs filesystems is disabled (Automated)"
+if [[ $(lsmod | grep hfs) != "" ]]
+then
+  rmmod hfs
+  echo "Ensure mounting of hfs filesystems is disabled (Automated): FIXED" >> $summary_logs
+else
+  echo "PASSED"
+  echo "Ensure mounting of hfs filesystems is disabled (Automated): PASSED" >> $summary_logs
+fi
+
+#5. Ensure mounting of hfsplus filesystems is disabled (Automated)
+echo "Ensure mounting of hfsplus filesystems is disabled (Automated)"
+if [[ $(lsmod | grep hfsplus) != "" ]]
+then
+  rmmod hfsplus
+  echo "Ensure mounting of hfsplus filesystems is disabled (Automated): FIXED" >> $summary_logs
+else
+  echo "PASSED"
+  echo "Ensure mounting of hfsplus filesystems is disabled (Automated): PASSED" >> $summary_logs
+
+echo "Ensure mounting of squashfs filesystems is disabled (Manual)"
+if [[ $(lsmod | grep squashfs) != "" ]]
+then
+  rmmod squashfs
+  echo "Ensure mounting of squashfs filesystems is disabled (Manual): FIXED" >> $summary_logs
+else
+  echo "PASSED"
+  echo "Ensure mounting of squashfs filesystems is disabled (Manual): PASSED" >> $summary_logs
+fi
+
+#6. Ensure mounting of udf filesystems is disabled (Automated)
+echo "Ensure mounting of udf filesystems is disabled (Automated)"
+if [[ $(lsmod | grep udf) != "" ]]
+then
+  rmmod udf
+  echo "Ensure mounting of udf filesystems is disabled (Automated): FIXED" >> $summary_logs
+else
+  echo "PASSED"
+  echo "Ensure mounting of udf filesystems is disabled (Automated)" >> $summary_logs
+fi
+
+#7. Ensure /tmp is configured (Automated)
+echo 'Ensure /tmp is configured (Automated)'
+if [[ $(findmnt -n /tmp) == "" ]]
+then
+  cp -v /usr/share/systemd/tmp.mount /etc/systemd/system/
+  sed -i 's/Options=mode=1777,strictatime,nosuid,nodev/Options=mode=1777,strictatime,nosuid,nodev,noexec/g' /etc/systemd/system/tmp.mount
+  systemctl daemon-reload
+  systemctl --now enable tmp.mount
+else
+  echo "PASSED"
+  echo "Ensure /tmp is configured (Automated): PASSED" >> $summary_logs
+fi
+
+#8. Ensure nodev option set on /tmp partition (Automated)
+echo "Ensure nosuid option set on /tmp partition (Automated)"
+if [[ $(findmnt -n /tmp | grep nodev) != "" ]]
+then
+  echo "PASSED"
+  "Ensure nodev option set on /tmp partition (Automated)" >> $summary_logs
+else
+  mount -o remount,nodev /tmp
+  systemctl daemon-reload
+  echo "Ensure nodev option set on /tmp partition (Automated)" >> $summary_logs
+fi
+
+#9. Ensure nosuid option set on /tmp partition (Automated)
+echo "Ensure nosuid option set on /tmp partition (Automated)"
+if [[ $(findmnt -n /tmp | grep nosuid) != "" ]]
+then
+  echo "PASSED"
+  "Ensure nosuid option set on /tmp partition (Automated)" >> $summary_logs
+else
+  mount -o remount,nosuid /tmp
+  systemctl daemon-reload
+  echo "Ensure nosuit option set on /tmp partition (Automated)" >> $summary_logs
+fi
+
+#10. Ensure noexec option set on /tmp partition (Automated)
+echo "Ensure noexec option set on /tmp partition (Automated)"
+if [[ $(findmnt -n /tmp | grep noexec) != "" ]]
+then
+  echo "PASSED"
+  "Ensure noexec option set on /tmp partition (Automated)" >> $summary_logs
+else
+  mount -o remount,noexec /tmp
+  systemctl daemon-reload
+  echo "Ensure noexec option set on /tmp partition (Automated)" >> $summary_logs
+fi
+
+#11. Ensure noexec option set on /dev/shm partition (Automated)
+echo "Ensure noexec option set on /dev/shm partition (Automated)"
+if [[ $(findmnt -n /dev/shm |grep noexec) != "" ]]
+then
+  mount -o remount,nosuid,nodev,noexec /dev/shm
+  systemctl daemon-reload
+  echo "Ensure noexec option set on /dev/shm partition (Automated): FIXED"
+else
+  echo "PASSED"
+  echo "Ensure noexec option set on /dev/shm partition (Automated)" >> $summary_logs
+fi
